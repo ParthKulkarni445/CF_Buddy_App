@@ -11,15 +11,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google-cloud/firestore": "^6.0.0",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "firebase-admin": "^13.2.0",
     "jsonwebtoken": "^9.0.2",
-    "node-fetch": "^3.0.0", 
-    "@google-cloud/firestore": "^6.0.0",
     "mongoose": "^8.9.6",
+    "node-fetch": "^2.7.0",
     "nodemailer": "^6.9.1"
   },
   "devDependencies": {
