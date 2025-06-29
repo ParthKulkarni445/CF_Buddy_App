@@ -1,9 +1,11 @@
+import 'package:acex/contests_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 
 class NotificationService {
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-    initFCM ()async{
+    initFCM (BuildContext context)async{
         await _firebaseMessaging.requestPermission();
 
         String? token = await _firebaseMessaging.getToken();
@@ -21,6 +23,15 @@ class NotificationService {
 
         FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
             print("onMessageOpenedApp: ${message.notification?.title} - ${message.notification?.body}");
+            final action = message.data['action'];
+            if(action == "VIEW_CONTEST") {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ContestsPage(),
+                    ),
+                );
+            }
         });
 
     }

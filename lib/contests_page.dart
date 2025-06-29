@@ -1,16 +1,18 @@
 import 'package:acex/contests_details.dart';
+import 'package:acex/providers/user_provider.dart';
 import 'package:acex/services.dart';
 import 'package:acex/settings.dart';
 import 'package:acex/utils/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:googleapis/connectors/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ContestsPage extends StatefulWidget {
-  final String handle;
-  const ContestsPage({super.key, required this.handle});
+  final String? handle;
+  const ContestsPage({super.key, this.handle});
 
   @override
   State<ContestsPage> createState() => _ContestsPageState();
@@ -37,7 +39,7 @@ class _ContestsPageState extends State<ContestsPage> {
 
   void _fetchData() {
     contests = ApiService().getContests();
-    givenContests = ApiService().getRatingHistory(widget.handle);
+    if(widget.handle!=null)givenContests = ApiService().getRatingHistory(widget.handle!);
     contests.then((contestsList) {
       _processContestEvents(contestsList);
     });
