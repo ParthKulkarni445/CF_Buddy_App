@@ -168,6 +168,11 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // 1) ensure Flutter bindings & Firebase
   WidgetsFlutterBinding.ensureInitialized();
+  // --- RE-ADD THIS LINE ---
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // Ensure you pass options here
+  );
+  // -----------------------
 
   // 2) make a fresh plugin instance
   final flnpBg = FlutterLocalNotificationsPlugin();
