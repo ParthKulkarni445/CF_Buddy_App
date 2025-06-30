@@ -2,7 +2,6 @@ import 'package:acex/auth_page.dart';
 import 'package:acex/contests_page.dart';
 import 'package:acex/firebase_options.dart';
 import 'package:acex/landing_page.dart';
-import 'package:acex/notification_service.dart';
 import 'package:acex/providers/user_provider.dart';
 import 'package:acex/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,38 +9,69 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+final _flnp = FlutterLocalNotificationsPlugin();
+const _channel = AndroidNotificationChannel(
+  'contest_reminders',
+  'Contest Reminders',
+  description: 'Countdown to Codeforces contests',
+  importance: Importance.high,
+);
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await _flnp
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_channel);
+
+  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: androidInit);
+  await _flnp.initialize(initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse resp) {
+    // handle taps on the notification itself or on action buttons
+    final payload = resp.payload;
+    if (payload != null) {
+      Navigator.of(navigatorKey.currentContext!).push(
+        MaterialPageRoute(
+          builder: (_) => ContestsPage(handle: payload),
+        ),
+      );
+    }
+  });
+
   // Set background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          textSelectionTheme: const TextSelectionThemeData(
-            selectionHandleColor: Colors.blue,
-            cursorColor: Colors.blue,
+        providers: [
+          ChangeNotifierProvider(create: (_) => UserProvider()),
+        ],
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            textSelectionTheme: const TextSelectionThemeData(
+              selectionHandleColor: Colors.blue,
+              cursorColor: Colors.blue,
+            ),
+            fontFamily: 'Poppins',
+            primaryColor: Colors.white,
           ),
-          fontFamily: 'Poppins',
-          primaryColor: Colors.white,
-        ),
-        home: const MyApp(),
-      )
-    ),
+          home: const MyApp(),
+        )),
   );
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -60,14 +90,14 @@ class _MyAppState extends State<MyApp> {
     initialise();
   }
 
-  void initialise() async{
+  void initialise() async {
     await authService.getUserData(context);
     FlutterNativeSplash.remove();
   }
 
   @override
   Widget build(BuildContext context) {
-    if(Provider.of<UserProvider>(context).user.token.isEmpty){
+    if (Provider.of<UserProvider>(context).user.token.isEmpty) {
       return const AuthPage();
     } else {
       return const LandingPage();
@@ -75,44 +105,54 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+void _showLocalNotification(RemoteMessage msg) {
+  final title = msg.data['title'] ?? msg.notification?.title;
+  final body = msg.data['body'] ?? msg.notification?.body;
+
+  final androidDetails = AndroidNotificationDetails(
+    _channel.id,
+    _channel.name,
+    channelDescription: _channel.description,
+    importance: Importance.high,
+    priority: Priority.high,
+    icon: '@mipmap/ic_launcher',
+  );
+  final platformDetails = NotificationDetails(android: androidDetails);
+
+  _flnp.show(
+    msg.hashCode,
+    title,
+    body,
+    platformDetails,
+  );
+}
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    // This handler will be called when the app is in the background or terminated
-    print("Handling a background message: ${message.messageId}");
-    print("Notification Title: ${message.notification?.title}");
-    print("Notification Body: ${message.notification?.body}");
+  // This handler will be called when the app is in the background or terminated
+  _showLocalNotification(message);
 }
 
 class NotificationService {
-    final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-    initFCM (BuildContext context)async{
-        await _firebaseMessaging.requestPermission();
+  initFCM(BuildContext context) async {
+    await _firebaseMessaging.requestPermission();
 
-        String? token = await _firebaseMessaging.getToken();
-        if (token != null) {
-            print("FCM Token: $token");
-        } else {
-            print("Failed to get FCM token");
-        }
-
-        await _firebaseMessaging.subscribeToTopic('contest-reminders');
-
-        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-            print("onMessage: ${message.notification?.title} - ${message.notification?.body}");
-        });
-
-        FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-            print("onMessageOpenedApp: ${message.notification?.title} - ${message.notification?.body}");
-            final action = message.data['action'];
-            if(action == "VIEW_CONTEST") {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ContestsPage(),
-                    ),
-                );
-            }
-        });
-
+    String? token = await _firebaseMessaging.getToken();
+    if (token != null) {
+      print("FCM Token: $token");
+    } else {
+      print("Failed to get FCM token");
     }
+
+    await _firebaseMessaging.subscribeToTopic('contest-reminders');
+
+    FirebaseMessaging.onMessage.listen(_showLocalNotification);
+
+    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ContestsPage()),
+      );
+    });
+  }
 }
