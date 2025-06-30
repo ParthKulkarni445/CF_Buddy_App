@@ -12,6 +12,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final _flnp = FlutterLocalNotificationsPlugin();
+
 const _channel = AndroidNotificationChannel(
   'contest_reminders',
   'Contest Reminders',
@@ -42,7 +43,7 @@ void main() async {
     if (payload != null) {
       Navigator.of(navigatorKey.currentContext!).push(
         MaterialPageRoute(
-          builder: (_) => ContestsPage(handle: payload),
+          builder: (_) => ContestsPage(),
         ),
       );
     }
@@ -105,7 +106,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-void _showLocalNotification(RemoteMessage msg) {
+void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin flnp) {
   final title = msg.data['title'] ?? msg.notification?.title;
   final body = msg.data['body'] ?? msg.notification?.body;
 
@@ -116,10 +117,16 @@ void _showLocalNotification(RemoteMessage msg) {
     importance: Importance.high,
     priority: Priority.high,
     icon: '@mipmap/ic_launcher',
+    styleInformation: BigTextStyleInformation(
+      body,
+      contentTitle: title,
+      htmlFormatTitle: true,
+      htmlFormatContent: true,
+    ),
   );
   final platformDetails = NotificationDetails(android: androidDetails);
 
-  _flnp.show(
+  flnp.show(
     msg.hashCode,
     title,
     body,
@@ -128,8 +135,25 @@ void _showLocalNotification(RemoteMessage msg) {
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // This handler will be called when the app is in the background or terminated
-  _showLocalNotification(message);
+  // 1) ensure Flutter bindings & Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  // 2) make a fresh plugin instance
+  final flnpBg = FlutterLocalNotificationsPlugin();
+
+  // 3) recreate your channel
+  await flnpBg
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(_channel);
+
+  // 4) initialize it (with correct icon)
+  const androidInit = AndroidInitializationSettings('ic_launcher');
+  await flnpBg.initialize(const InitializationSettings(android: androidInit));
+
+  // 5) show the notification
+  _showLocalNotification(message, flnpBg);
 }
 
 class NotificationService {
@@ -147,7 +171,9 @@ class NotificationService {
 
     await _firebaseMessaging.subscribeToTopic('contest-reminders');
 
-    FirebaseMessaging.onMessage.listen(_showLocalNotification);
+    FirebaseMessaging.onMessage.listen((RemoteMessage msg) {
+      _showLocalNotification(msg, _flnp);
+    });
 
     FirebaseMessaging.onMessageOpenedApp.listen((msg) {
       Navigator.of(context).push(
