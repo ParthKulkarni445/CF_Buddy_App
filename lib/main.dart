@@ -59,6 +59,7 @@ void main() async {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
           theme: ThemeData(
             textSelectionTheme: const TextSelectionThemeData(
               selectionHandleColor: Colors.blue,
@@ -120,8 +121,8 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
     styleInformation: BigTextStyleInformation(
       body,
       contentTitle: title,
-      htmlFormatTitle: true,
-      htmlFormatContent: true,
+      htmlFormatBigText: false,
+      htmlFormatContentTitle: false,
     ),
   );
   final platformDetails = NotificationDetails(android: androidDetails);
@@ -137,7 +138,6 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // 1) ensure Flutter bindings & Firebase
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
 
   // 2) make a fresh plugin instance
   final flnpBg = FlutterLocalNotificationsPlugin();
