@@ -34,7 +34,7 @@ void main() async {
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(_channel);
 
-  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const androidInit = AndroidInitializationSettings('ic_stat_contest_reminder');
   const initSettings = InitializationSettings(android: androidInit);
   await _flnp.initialize(initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse resp) {
@@ -116,7 +116,7 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
     channelDescription: _channel.description,
     importance: Importance.high,
     priority: Priority.high,
-    icon: '@mipmap/ic_launcher',
+    icon: 'ic_stat_contest_reminder',
     styleInformation: BigTextStyleInformation(
       body,
       contentTitle: title,
@@ -149,7 +149,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       ?.createNotificationChannel(_channel);
 
   // 4) initialize it (with correct icon)
-  const androidInit = AndroidInitializationSettings('ic_launcher');
+  const androidInit = AndroidInitializationSettings('ic_stat_contest_reminder');
   await flnpBg.initialize(const InitializationSettings(android: androidInit));
 
   // 5) show the notification
