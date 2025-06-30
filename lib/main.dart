@@ -40,12 +40,25 @@ void main() async {
       onDidReceiveNotificationResponse: (NotificationResponse resp) {
     // handle taps on the notification itself or on action buttons
     final payload = resp.payload;
-    if (payload != null) {
-      Navigator.of(navigatorKey.currentContext!).push(
-        MaterialPageRoute(
-          builder: (_) => ContestsPage(),
-        ),
-      );
+    final actionId = resp.actionId;
+    if (actionId == 'id_1' && payload != null) { // Check for the specific action button ID
+      // Handle "VIEW_CONTEST" action
+      if (navigatorKey.currentContext != null && navigatorKey.currentContext!.mounted) {
+        Navigator.of(navigatorKey.currentContext!).push(
+          MaterialPageRoute(
+            builder: (_) => ContestsPage(),
+          ),
+        );
+      }
+    } else if (payload != null && actionId == null) {
+      // This means the main notification body was tapped (not an action button)
+      if (navigatorKey.currentContext != null && navigatorKey.currentContext!.mounted) {
+        Navigator.of(navigatorKey.currentContext!).push(
+          MaterialPageRoute(
+            builder: (_) => ContestsPage(),
+          ),
+        );
+      }
     }
   });
 
@@ -110,6 +123,7 @@ class _MyAppState extends State<MyApp> {
 void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin flnp) {
   final title = msg.data['title'];
   final body = msg.data['body'];
+  final action = msg.data['action'];
 
   final androidDetails = AndroidNotificationDetails(
     _channel.id,
@@ -124,7 +138,22 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
       htmlFormatBigText: false,
       htmlFormatContentTitle: false,
     ),
+    actions: action != null
+        ? <AndroidNotificationAction>[
+            AndroidNotificationAction(
+              'id_1', // Unique ID for this action button
+              action, // This will display "VIEW_CONTEST" on the button
+              // For deeper links or specific actions, you might add a payload here
+              // payload: 'contest_id_xyz',
+              // context: AndroidActionContext.appContext, // Use appContext if you want to perform actions without opening the app immediately (e.g., mark as read)
+            ),
+            // You can add more buttons if needed
+            // AndroidNotificationAction('id_2', 'Dismiss'),
+          ]
+        : null, // No actions if 'action' data is not provided
+    // ------------------------------------------
   );
+  
   final platformDetails = NotificationDetails(android: androidDetails);
 
   flnp.show(
@@ -132,6 +161,7 @@ void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin f
     title,
     body,
     platformDetails,
+    payload: 'action_payload_from_notification',
   );
 }
 
