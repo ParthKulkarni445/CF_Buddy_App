@@ -11,15 +11,25 @@ class MainActivity: FlutterActivity() {
     super.onCreate(savedInstanceState)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channel = NotificationChannel(
-        "contest_reminders",               // must match channelId
+      val contestChannel = NotificationChannel(
+        "contest_reminders",
         "Contest Reminders",
         NotificationManager.IMPORTANCE_HIGH
       ).apply {
         description = "Notifications about upcoming contests"
       }
-      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
-        .createNotificationChannel(channel)
+
+      val motivationChannel = NotificationChannel(
+        "motivation_channel",
+        "Motivation Channel",
+        NotificationManager.IMPORTANCE_DEFAULT
+      ).apply {
+        description = "Daily motivational messages"
+      }
+
+      val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+      manager.createNotificationChannel(contestChannel)
+      manager.createNotificationChannel(motivationChannel)
     }
   }
 }

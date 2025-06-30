@@ -5,9 +5,10 @@ import 'package:acex/settings.dart';
 import 'package:acex/utils/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:googleapis/connectors/v1.dart';
+// import 'package:googleapis/connectors/v1.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ContestsPage extends StatefulWidget {
@@ -30,7 +31,6 @@ class _ContestsPageState extends State<ContestsPage> {
   Set<String> contestIDs = {};
   CalendarFormat _calendarFormat = CalendarFormat.month;
   final _calendarKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
@@ -40,6 +40,7 @@ class _ContestsPageState extends State<ContestsPage> {
   void _fetchData() {
     contests = ApiService().getContests();
     if(widget.handle!=null)givenContests = ApiService().getRatingHistory(widget.handle!);
+    else givenContests = ApiService().getRatingHistory(Provider.of<UserProvider>(context, listen: false).user!.handle!);
     contests.then((contestsList) {
       _processContestEvents(contestsList);
     });

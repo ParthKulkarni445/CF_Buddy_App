@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -100,15 +101,18 @@ class NotificationService {
           "onMessage: ${message.notification?.title} - ${message.notification?.body}");
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print(
-          "onMessageOpenedApp: ${message.notification?.title} - ${message.notification?.body}");
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ContestsPage(),
-        ),
-      );
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      final channelId = message.notification?.android?.channelId;
+      if (channelId == 'contest-reminders') {
+        final contestId = message.data['contestId'];
+        final uri = Uri.parse('https://codeforces.com/contestRegistration/${contestId}');
+        if (!await launchUrl(
+          uri,
+          mode: LaunchMode.inAppBrowserView,
+        )) {
+          throw Exception('Could not launch $uri');
+        }
+      }
     });
   }
 }
