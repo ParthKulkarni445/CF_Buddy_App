@@ -107,8 +107,8 @@ class _MyAppState extends State<MyApp> {
 }
 
 void _showLocalNotification(RemoteMessage msg, FlutterLocalNotificationsPlugin flnp) {
-  final title = msg.data['title'] ?? msg.notification?.title;
-  final body = msg.data['body'] ?? msg.notification?.body;
+  final title = msg.data['title'];
+  final body = msg.data['body'];
 
   final androidDetails = AndroidNotificationDetails(
     _channel.id,
