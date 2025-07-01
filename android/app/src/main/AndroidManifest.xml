@@ -21,6 +21,17 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+
+            <!-- FCM default icon -->
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_icon"
+                android:resource="@mipmap/ic_stat_reminder" />
+            <!-- (Optional) default color for the icon tint -->
+
+            <meta-data
+                android:name="com.google.firebase.messaging.default_notification_color"
+                android:resource="@color/Green" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
