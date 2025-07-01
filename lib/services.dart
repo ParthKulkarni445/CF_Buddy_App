@@ -655,6 +655,75 @@ class ApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> _getRecentContests(int count) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://codeforces.com/api/contest.list'),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK') {
+          final contests = List<Map<String, dynamic>>.from(data['result']);
+          // Filter finished contests and take the most recent ones
+          final finishedContests = contests
+              .where((contest) => contest['phase'] == 'FINISHED')
+              .take(count)
+              .toList();
+          return finishedContests;
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Get tags from user's unsolved problems in last N contests
+  Future<List<String>> getUnsolvedTagsFromLastContests(String handle, int contestCount) async {
+    try {
+      // Get user's submissions
+      final submissions = await getSubmissions(handle);
+      
+      // Get recent contest IDs
+      final recentContests = await _getRecentContests(contestCount);
+      final recentContestIds = recentContests.map((c) => c['id'].toString()).toSet();
+      
+      // Find unsolved problems (wrong attempts + first unsolved) from recent contests
+      final Set<String> unsolvedTags = {};
+      final Set<String> solvedProblems = {};
+      
+      // First pass: identify solved problems
+      for (final submission in submissions) {
+        if (submission['verdict'] == 'OK') {
+          final problem = submission['problem'];
+          final contestId = problem['contestId'].toString();
+          final index = problem['index'];
+          solvedProblems.add('$contestId$index');
+        }
+      }
+      
+      // Second pass: collect tags from unsolved problems in recent contests
+      for (final submission in submissions) {
+        final problem = submission['problem'];
+        final contestId = problem['contestId'].toString();
+        final index = problem['index'];
+        final problemKey = '$contestId$index';
+        
+        // Check if it's from a recent contest and not solved
+        if (recentContestIds.contains(contestId) && !solvedProblems.contains(problemKey)) {
+          final tags = List<String>.from(problem['tags'] ?? []);
+          unsolvedTags.addAll(tags);
+        }
+      }
+      
+      return unsolvedTags.toList();
+    } catch (e) {
+      // Return empty list if there's an error
+      return [];
+    }
+  }
+
   Future<Map<String, dynamic>> getContestDetails(int contestId) async {
     final response = await http.get(Uri.parse(
         'https://codeforces.com/api/contest.standings?contestId=$contestId'));

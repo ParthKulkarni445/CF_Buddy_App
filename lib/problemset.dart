@@ -1,4 +1,5 @@
 import 'package:acex/services.dart';
+import 'package:acex/suggested_problems.dart';
 import 'package:acex/utils/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/chip_display/multi_select_chip_display.dart';
@@ -236,6 +237,15 @@ class _ProblemPageState extends State<ProblemPage> {
     });
   }
 
+  void _navigateToSuggestedProblems() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SuggestedProblemsPage(handle: widget.handle),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,6 +305,9 @@ class _ProblemPageState extends State<ProblemPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // Suggestions Card
+                          _buildSuggestionsCard(),
+                          const SizedBox(height: 16),
                           _buildProblemList(),
                           const SizedBox(height: 60),
                         ],
@@ -305,6 +318,117 @@ class _ProblemPageState extends State<ProblemPage> {
               ),
             );
           }),
+    );
+  }
+
+  Widget _buildSuggestionsCard() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.teal.shade50,
+              Colors.teal.shade100,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.teal,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.lightbulb_outline,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Suggestions',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.orange.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'We have gone through your performance in the last few contests and handpicked some problems to help you improve.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.orange.shade800,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToSuggestedProblems,
+                  icon: const Icon(Icons.arrow_forward, size: 20),
+                  label: const Text(
+                    'View Suggested Problems',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -824,223 +948,6 @@ class _ProblemPageState extends State<ProblemPage> {
       ],
     );
   }
-
-  // void _showProblemDetailsModal(
-  //   BuildContext context, {
-  //   String? contestId,
-  //   String? index,
-  //   ProblemDetails? details,
-  // }) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: Colors.transparent,
-  //     builder: (context) {
-  //       return DraggableScrollableSheet(
-  //         initialChildSize: 0.9,
-  //         minChildSize: 0.5,
-  //         maxChildSize: 0.95,
-  //         builder: (context, scrollController) {
-  //           return Container(
-  //             decoration: const BoxDecoration(
-  //               color: Colors.white,
-  //               borderRadius: BorderRadius.only(
-  //                 topLeft: Radius.circular(20),
-  //                 topRight: Radius.circular(20),
-  //               ),
-  //             ),
-  //             child: Column(
-  //               children: [
-  //                 // Handle
-  //                 Container(
-  //                   width: 40,
-  //                   height: 5,
-  //                   margin: const EdgeInsets.symmetric(vertical: 10),
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.grey[300],
-  //                     borderRadius: BorderRadius.circular(10),
-  //                   ),
-  //                 ),
-  //                 // Header
-  //                 Padding(
-  //                   padding: const EdgeInsets.symmetric(
-  //                       horizontal: 20, vertical: 10),
-  //                   child: Row(
-  //                     children: [
-  //                       Expanded(
-  //                         flex: 8,
-  //                         child: Text(
-  //                           details?.title ?? 'Problem Details',
-  //                           style: const TextStyle(
-  //                             fontSize: 20,
-  //                             fontWeight: FontWeight.bold,
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       if (contestId != null && index != null)
-  //                         IconButton(
-  //                           icon: const Icon(Icons.open_in_browser,
-  //                               color: Colors.teal),
-  //                           onPressed: () => _launchURL(contestId, index),
-  //                         ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //                 const Divider(),
-  //                 // Content
-  //                 Expanded(
-  //                   child: details == null
-  //                       ? const Center(child: CircularProgressIndicator())
-  //                       : SingleChildScrollView(
-  //                           controller: scrollController,
-  //                           padding: const EdgeInsets.all(16),
-  //                           child: Column(
-  //                             crossAxisAlignment: CrossAxisAlignment.start,
-  //                             children: [
-  //                               // Problem Statement
-  //                               const Text(
-  //                                 'Problem Statement',
-  //                                 style: TextStyle(
-  //                                   fontSize: 18,
-  //                                   fontWeight: FontWeight.bold,
-  //                                   color: Colors.teal,
-  //                                 ),
-  //                               ),
-  //                               const SizedBox(height: 8),
-  //                               _buildLatexText(details.statement, context),
-  //                               const SizedBox(height: 16),
-
-  //                               // Input Specification
-  //                               const Text(
-  //                                 'Input Specification',
-  //                                 style: TextStyle(
-  //                                   fontSize: 18,
-  //                                   fontWeight: FontWeight.bold,
-  //                                   color: Colors.teal,
-  //                                 ),
-  //                               ),
-  //                               const SizedBox(height: 8),
-  //                               _buildLatexText(details.inputSpec, context),
-  //                               const SizedBox(height: 16),
-
-  //                               // Output Specification
-  //                               const Text(
-  //                                 'Output Specification',
-  //                                 style: TextStyle(
-  //                                   fontSize: 18,
-  //                                   fontWeight: FontWeight.bold,
-  //                                   color: Colors.teal,
-  //                                 ),
-  //                               ),
-  //                               const SizedBox(height: 8),
-  //                               _buildLatexText(details.outputSpec, context),
-  //                               const SizedBox(height: 16),
-
-  //                               // Examples
-  //                               const Text(
-  //                                 'Examples',
-  //                                 style: TextStyle(
-  //                                   fontSize: 18,
-  //                                   fontWeight: FontWeight.bold,
-  //                                   color: Colors.teal,
-  //                                 ),
-  //                               ),
-  //                               const SizedBox(height: 8),
-  //                               ...details.examples.map(
-  //                                   (example) => _buildExampleWidget(example)),
-  //                             ],
-  //                           ),
-  //                         ),
-  //                 ),
-  //               ],
-  //             ),
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
-
-
-// Widget _buildLatexText(String text, BuildContext context) {
-//   // RegExp for $$$…$$$ blocks or image markdown (![alt](url))
-//   final pattern = RegExp(
-//     r'(\$\$\$[\s\S]+?\$\$\$)|(!\[[^\]]*?\]\([^\)]+?\))',
-//     dotAll: true,
-//   );
-
-//   final spans = <InlineSpan>[];
-//   int lastEnd = 0;
-
-//   for (final match in pattern.allMatches(text)) {
-//     // 1) Plain text before this match
-//     if (match.start > lastEnd) {
-//       spans.add(TextSpan(text: text.substring(lastEnd, match.start)));
-//     }
-
-//     final mathBlock = match.group(1);
-//     final imgMarkdown = match.group(2);
-
-//     if (mathBlock != null) {
-//       // 2) $$$…$$$ → LaTeX via latext
-//       final expr = mathBlock.substring(3, mathBlock.length - 3);
-//       spans.add(WidgetSpan(
-//         alignment: PlaceholderAlignment.middle,
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(vertical: 4),
-//           child: LaTexT(
-//             // LaTexT wants a Text widget containing just the raw TeX
-//             laTeXCode: Text(
-//               expr,
-//               style: DefaultTextStyle.of(context).style.copyWith(
-//                 fontSize: 15,
-//                 fontWeight: FontWeight.bold,
-//                 color: Colors.black87,
-//               ),
-//             ),
-//           ),
-//         ),
-//       ));
-//     } else if (imgMarkdown != null) {
-//       // 3) ![alt](url) → Image.network
-//       final md = RegExp(r'!\[([^\]]*?)\]\(([^)]+)\)').firstMatch(imgMarkdown);
-//       final src = md?.group(2) ?? '';
-//       spans.add(WidgetSpan(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(vertical: 8),
-//           child: Image.network(
-//             src,
-//             fit: BoxFit.contain,
-//             errorBuilder: (_, __, ___) => Text(
-//               '[Image failed]',
-//               style: TextStyle(color: Colors.red[400]),
-//             ),
-//           ),
-//         ),
-//       ));
-//     }
-
-//     lastEnd = match.end;
-//   }
-
-//   // 4) Trailing plain text
-//   if (lastEnd < text.length) {
-//     spans.add(TextSpan(text: text.substring(lastEnd)));
-//   }
-
-//   // Base style for all text
-//   final defaultStyle = DefaultTextStyle.of(context).style.copyWith(
-//     fontSize: 15,
-//     height: 1.4,
-//     color: Colors.black87,
-//   );
-
-//   return RichText(
-//     text: TextSpan(style: defaultStyle, children: spans),
-//   );
-// }
-
 
   Widget _buildExampleWidget(Map<String, String> example) {
     return Card(

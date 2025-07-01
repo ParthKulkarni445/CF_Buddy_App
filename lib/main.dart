@@ -95,6 +95,7 @@ class NotificationService {
     }
 
     await _firebaseMessaging.subscribeToTopic('contest-reminders');
+    await _firebaseMessaging.subscribeToTopic('motivation-channel');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print(
