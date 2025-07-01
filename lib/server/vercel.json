@@ -14,6 +14,10 @@
       "dest": "api/send-motivation.js"
     },
     {
+      "src": "/api/fetch-practice-tags",
+      "dest": "api/fetch-practice-tags.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "index.js"
     }
