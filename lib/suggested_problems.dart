@@ -1,6 +1,7 @@
 import 'package:acex/services.dart';
 import 'package:acex/utils/loading_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SuggestedProblemsPage extends StatefulWidget {
@@ -74,7 +75,8 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
       
       // Fetch unsolved problem tags from last 3 contests
       // This assumes you have a method in ApiService to get this data
-      final unsolvedTags = await ApiService().getUnsolvedTagsFromLastContests(widget.handle, 3);
+      final unsolvedTags = await ApiService().getUnsolvedTagsFromLastContests(widget.handle, 2);
+      print('Unsolved Tags: $unsolvedTags');
       
       return {
         'currentRating': currentRating,
@@ -189,57 +191,60 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 15,
-        shadowColor: Colors.black,
-        title: const Text(
-          'Suggested Problems',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            letterSpacing: 0.5,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          centerTitle: true,
+          elevation: 15,
+          shadowColor: Colors.black,
+          title: const Text(
+            'Suggestions',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              letterSpacing: 0.5,
+            ),
+          ),
+          backgroundColor: Colors.teal,
+          surfaceTintColor: Colors.teal,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        backgroundColor: Colors.teal,
-        surfaceTintColor: Colors.teal,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: FutureBuilder(
-          future: Future.wait([problemsetData, userDataFuture]),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const LoadingCard(primaryColor: Colors.teal);
-            }
-            if (snapshot.hasError || snapshot.data == null) {
-              return _buildErrorWidget();
-            }
-
-            return RefreshIndicator(
-              onRefresh: _refreshData,
-              color: Colors.black,
-              backgroundColor: Colors.teal,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(5.0),
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildSuggestionInfoCard(),
-                    const SizedBox(height: 16),
-                    _buildProblemList(),
-                    const SizedBox(height: 60),
-                  ],
+        body: FutureBuilder(
+            future: Future.wait([problemsetData, userDataFuture]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const LoadingCard(primaryColor: Colors.teal);
+              }
+              if (snapshot.hasError || snapshot.data == null) {
+                return _buildErrorWidget();
+              }
+      
+              return RefreshIndicator(
+                onRefresh: _refreshData,
+                color: Colors.black,
+                backgroundColor: Colors.teal,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(5.0),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8),
+                      _buildSuggestionInfoCard(),
+                      const SizedBox(height: 12),
+                      _buildProblemList(),
+                      const SizedBox(height: 60),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+      ),
     );
   }
 
@@ -257,8 +262,8 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.blue.shade50,
-              Colors.blue.shade100,
+              Colors.teal.shade50,
+              Colors.teal.shade100,
             ],
           ),
         ),
@@ -272,7 +277,7 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue,
+                      color: Colors.teal,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -287,49 +292,113 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Colors.teal,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildInfoChip(
-                'Rating Range', 
-                '${_startRating.round()} - ${_endRating.round()}',
-                Icons.star,
-                Colors.orange,
-              ),
-              const SizedBox(height: 8),
-              if (_suggestedTags.isNotEmpty)
-                _buildInfoChip(
-                  'Focus Tags', 
-                  _suggestedTags.take(3).join(', ') + 
-                    (_suggestedTags.length > 3 ? '...' : ''),
-                  Icons.label,
-                  Colors.green,
+              // Show suggested tags from backend
+              if (_suggestedTags.isNotEmpty) ...[
+                Row(
+                  children: [
+                    Icon(Icons.label, size: 16, color: Colors.teal),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Focus Tags:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: _suggestedTags.take(10).map((tag) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.teal,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )).toList(),
+                ),
+                if (_suggestedTags.length > 10)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      '+${_suggestedTags.length - 10} more tags',
+                      style: TextStyle(
+                        color: Colors.teal.shade700,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.orange.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'No specific tags found from recent contests. You need to be more regular in giving contests to allow us collect your data.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: Colors.teal.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
+                  border: Border.all(color: Colors.teal.shade200),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: Colors.blue.shade700,
+                      color: Colors.teal.shade700,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Problems are filtered based on your current rating (±200) and tags from your recent unsolved attempts.',
+                        'Problems are filtered based on a margin of (+/-) 200 from current rating and tags from your recent unsolved attempts.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.blue.shade800,
+                          color: Colors.teal.shade800,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -341,33 +410,6 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoChip(String label, String value, IconData icon, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
-            fontSize: 14,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

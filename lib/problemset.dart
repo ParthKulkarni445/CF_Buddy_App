@@ -374,15 +374,15 @@ class _ProblemPageState extends State<ProblemPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: Colors.teal.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
+                  border: Border.all(color: Colors.teal.shade200),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: Colors.orange.shade700,
+                      color: Colors.teal.shade700,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -391,7 +391,7 @@ class _ProblemPageState extends State<ProblemPage> {
                         'We have gone through your performance in the last few contests and handpicked some problems to help you improve.',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.orange.shade800,
+                          color: Colors.teal.shade800,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -403,7 +403,7 @@ class _ProblemPageState extends State<ProblemPage> {
               Center(
                 child: ElevatedButton.icon(
                   onPressed: _navigateToSuggestedProblems,
-                  icon: const Icon(Icons.arrow_forward, size: 20),
+                  icon: const Icon(Icons.arrow_forward, color:Colors.white, size: 25),
                   label: const Text(
                     'View Suggested Problems',
                     style: TextStyle(

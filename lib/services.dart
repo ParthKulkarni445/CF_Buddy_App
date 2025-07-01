@@ -679,48 +679,95 @@ class ApiService {
     }
   }
 
-  // Get tags from user's unsolved problems in last N contests
-  Future<List<String>> getUnsolvedTagsFromLastContests(String handle, int contestCount) async {
+  /// Hard‐coded list of all CF tags
+  final List<String> _availableTags = [
+    '2-sat',
+    'binary search',
+    'bitmasks',
+    'brute force',
+    'chinese remainder theorem',
+    'combinatorics',
+    'constructive algorithms',
+    'data structures',
+    'dfs and similar',
+    'divide and conquer',
+    'dp',
+    'dsu',
+    'expression parsing',
+    'fft',
+    'flows',
+    'games',
+    'geometry',
+    'graph matchings',
+    'graphs',
+    'greedy',
+    'hashing',
+    'implementation',
+    'interactive',
+    'math',
+    'matrices',
+    'meet-in-the-middle',
+    'number theory',
+    'probabilities',
+    'shortest paths',
+    'sortings',
+    'string suffix structures',
+    'strings',
+    'ternary search',
+    'trees',
+    'two pointers',
+  ];
+
+  /// Get user’s unsolved tags from last N contests, using only
+  /// the above hard-coded tag list and CF standings with &handles=
+  Future<List<String>> getUnsolvedTagsFromLastContests(
+      String handle, int contestCount) async {
     try {
-      // Get user's submissions
-      final submissions = await getSubmissions(handle);
-      
-      // Get recent contest IDs
-      final recentContests = await _getRecentContests(contestCount);
-      final recentContestIds = recentContests.map((c) => c['id'].toString()).toSet();
-      
-      // Find unsolved problems (wrong attempts + first unsolved) from recent contests
+      // 1) fetch the N most‐recent finished contests
+      final recent = await _getRecentContests(contestCount);
+      final ids = recent.map((c) => c['id'] as int).toList();
+
       final Set<String> unsolvedTags = {};
-      final Set<String> solvedProblems = {};
-      
-      // First pass: identify solved problems
-      for (final submission in submissions) {
-        if (submission['verdict'] == 'OK') {
-          final problem = submission['problem'];
-          final contestId = problem['contestId'].toString();
-          final index = problem['index'];
-          solvedProblems.add('$contestId$index');
+
+      // 2) for each contest, pull standings just for this handle
+      for (final cid in ids) {
+        final standing = await getUserStandings(cid, handle);
+        final problems = standing['problems'] as List<dynamic>;
+        final rows = standing['rows'] as List<dynamic>;
+        if (rows.isEmpty) continue;
+
+        // only one row when you pass &handles=
+        final results = rows[0]['problemResults'] as List<dynamic>;
+        // First pass: collect tags for all problems you attempted (rejectedAttemptCount > 0)
+        for (var i = 0; i < problems.length && i < results.length; i++) {
+          final res = results[i];
+          final points = (res['points'] as num).toDouble();
+          final rejected = (res['rejectedAttemptCount'] as int);
+          if (points == 0 && rejected > 0) {
+            final prob = problems[i] as Map<String, dynamic>;
+            final tags = List<String>.from(prob['tags'] ?? <String>[]);
+            for (var t in tags) {
+              if (_availableTags.contains(t)) unsolvedTags.add(t);
+            }
+          }
+        }
+
+        // Second pass: collect tags for the first completely unattempted unsolved problem
+        final firstUnattempted = results.indexWhere((r) =>
+            (r['points'] as num).toDouble() == 0 &&
+            (r['rejectedAttemptCount'] as int) == 0);
+        if (firstUnattempted >= 0 && firstUnattempted < problems.length) {
+          final prob = problems[firstUnattempted] as Map<String, dynamic>;
+          final tags = List<String>.from(prob['tags'] ?? <String>[]);
+          for (var t in tags) {
+            if (_availableTags.contains(t)) unsolvedTags.add(t);
+          }
         }
       }
-      
-      // Second pass: collect tags from unsolved problems in recent contests
-      for (final submission in submissions) {
-        final problem = submission['problem'];
-        final contestId = problem['contestId'].toString();
-        final index = problem['index'];
-        final problemKey = '$contestId$index';
-        
-        // Check if it's from a recent contest and not solved
-        if (recentContestIds.contains(contestId) && !solvedProblems.contains(problemKey)) {
-          final tags = List<String>.from(problem['tags'] ?? []);
-          unsolvedTags.addAll(tags);
-        }
-      }
-      
+
       return unsolvedTags.toList();
     } catch (e) {
-      // Return empty list if there's an error
-      return [];
+      return <String>[];
     }
   }
 

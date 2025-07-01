@@ -191,7 +191,7 @@ class MomentumCard extends StatelessWidget {
               const SizedBox(height: 12),
               // Info box explaining momentum criteria
               _buildMomentumInfoBox(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               _buildMomentumMeter(momentum),
               const SizedBox(height: 8),
               // Momentum remarks below the graph
@@ -219,9 +219,9 @@ class MomentumCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: Colors.teal.shade50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: Colors.teal.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +230,7 @@ class MomentumCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.info_outline,
-                color: Colors.red.shade700,
+                color: Colors.teal.shade700,
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -239,7 +239,7 @@ class MomentumCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.red.shade800,
+                  color: Colors.teal.shade800,
                 ),
               ),
             ],
@@ -268,7 +268,7 @@ class MomentumCard extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.red.shade700,
+            color: Colors.teal.shade700,
           ),
         ),
         const SizedBox(height: 2),
@@ -276,7 +276,7 @@ class MomentumCard extends StatelessWidget {
           description,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.red.shade600,
+            color: Colors.teal.shade600,
             height: 1.3,
           ),
         ),
