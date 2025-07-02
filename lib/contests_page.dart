@@ -37,10 +37,10 @@ class _ContestsPageState extends State<ContestsPage> {
     _fetchData();
   }
 
-  void _fetchData() {
+  void _fetchData({bool force = false}) {
     contests = ApiService().getContests();
-    if(widget.handle!=null)givenContests = ApiService().getRatingHistory(widget.handle!);
-    else givenContests = ApiService().getRatingHistory(Provider.of<UserProvider>(context, listen: false).user!.handle!);
+    if(widget.handle!=null)givenContests = ApiService().getRatingHistory(widget.handle!, force: force);
+    else givenContests = ApiService().getRatingHistory(Provider.of<UserProvider>(context, listen: false).user.handle, force: force);
     contests.then((contestsList) {
       _processContestEvents(contestsList);
     });
@@ -82,7 +82,7 @@ class _ContestsPageState extends State<ContestsPage> {
 
   void _retryFetchData() {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
   }
 

@@ -98,11 +98,11 @@ class _ProfilePageState extends State<ProfilePage> {
     _fetchData();
   }
 
-  void _fetchData() {
-    userInfo = ApiService().getUserInfo(widget.handle);
-    ratingHistory = ApiService().getRatingHistory(widget.handle);
-    submissions = ApiService().getSubmissions(widget.handle);
-    problemset = ApiService().getProblemset();
+  void _fetchData({bool force=false}) {
+    userInfo = ApiService().getUserInfo(widget.handle,force:force);
+    ratingHistory = ApiService().getRatingHistory(widget.handle,force:force);
+    submissions = ApiService().getSubmissions(widget.handle,force:force);
+    problemset = ApiService().getProblemset(force:force);
   }
 
   void _retryFetchData() {
@@ -113,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
     await Future.wait([userInfo, ratingHistory, submissions]);
   }

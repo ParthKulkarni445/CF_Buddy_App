@@ -221,11 +221,11 @@ class _StatsPageState extends State<StatsPage> {
     super.dispose();
   }
 
-  void _fetchData() {
-    submissions = ApiService().getSubmissions(widget.handle);
-    problems = ApiService().getProblemset();
-    contests = ApiService().getContests();
-    ratingHistory = ApiService().getRatingHistory(widget.handle);
+  void _fetchData({bool force = false}) {
+    submissions = ApiService().getSubmissions(widget.handle, force: force);
+    problems = ApiService().getProblemset(force: force);
+    contests = ApiService().getContests(force: force);
+    ratingHistory = ApiService().getRatingHistory(widget.handle, force: force);
   }
 
   void _retryFetchData() {
@@ -236,7 +236,7 @@ class _StatsPageState extends State<StatsPage> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
     await Future.wait([submissions, problems, contests, ratingHistory]);
   }

@@ -39,10 +39,10 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
     _fetchData();
   }
 
-  void _fetchData() {
-    problemsetData = ApiService().getProblemset();
-    submissions = ApiService().getSubmissions(widget.handle);
-    userDataFuture = _fetchUserDataAndTags();
+  void _fetchData({bool force = false}) {
+    problemsetData = ApiService().getProblemset(force: force);
+    submissions = ApiService().getSubmissions(widget.handle, force: force);
+    userDataFuture = _fetchUserDataAndTags(force);
     
     problemsetData.then((data) {
       setState(() {
@@ -67,7 +67,7 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
     });
   }
 
-  Future<Map<String, dynamic>> _fetchUserDataAndTags() async {
+  Future<Map<String, dynamic>> _fetchUserDataAndTags(bool force) async {
     try {
       // Fetch user's current rating
       final userInfo = await ApiService().getUserInfo(widget.handle);
@@ -75,7 +75,7 @@ class _SuggestedProblemsPageState extends State<SuggestedProblemsPage> {
       
       // Fetch unsolved problem tags from last 3 contests
       // This assumes you have a method in ApiService to get this data
-      final unsolvedTags = await ApiService().getUnsolvedTagsFromLastContests(widget.handle, 2);
+      final unsolvedTags = await ApiService().getUnsolvedTagsFromLastContests(widget.handle, 2, force:force);
       print('Unsolved Tags: $unsolvedTags');
       
       return {

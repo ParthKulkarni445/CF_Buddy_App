@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'dart:math';
 
-class MomentumCard extends StatelessWidget {
+class MomentumCard extends StatefulWidget {
   final List<dynamic> ratingHistory;
   final List<dynamic> submissions;
   final Map<String, dynamic> problemset;
@@ -17,16 +17,23 @@ class MomentumCard extends StatelessWidget {
     required this.Rating,
   });
 
+  @override
+  State<MomentumCard> createState() => _MomentumCardState();
+}
+
+class _MomentumCardState extends State<MomentumCard> {
+  bool _showCriteria = false;
+
   double _calculateMomentum() {
     double rawMomentum = 0;
     
     // Calculate contest performance (60% of momentum)
-    if (ratingHistory.isNotEmpty) {
+    if (widget.ratingHistory.isNotEmpty) {
       final now = DateTime.now();
       final twoMonthsAgo = now.subtract(const Duration(days: 60));
       
       // Filter contests from last 2 months
-      final recentContests = ratingHistory.where((contest) {
+      final recentContests = widget.ratingHistory.where((contest) {
         final contestTime = DateTime.fromMillisecondsSinceEpoch(
             contest['ratingUpdateTimeSeconds'] * 1000);
         return contestTime.isAfter(twoMonthsAgo);
@@ -64,7 +71,7 @@ class MomentumCard extends StatelessWidget {
     }
     
     // Calculate recent practice (40% of momentum)
-    if (submissions.isNotEmpty) {
+    if (widget.submissions.isNotEmpty) {
       final now = DateTime.now();
       final weekAgo = now.subtract(const Duration(days: 10));
       
@@ -72,7 +79,7 @@ class MomentumCard extends StatelessWidget {
       int totalSubmissions = 0;
       Set<String> uniqueProblems = {};
       
-      for (var submission in submissions) {
+      for (var submission in widget.submissions) {
         final submissionTime = DateTime.fromMillisecondsSinceEpoch(
             submission['creationTimeSeconds'] * 1000);
         
@@ -117,7 +124,7 @@ class MomentumCard extends StatelessWidget {
             final idx = m.group(2)!;
             print('Looking for problem $pid in problemset');
             
-            final p = problemset['problems'].firstWhere((e) =>
+            final p = widget.problemset['problems'].firstWhere((e) =>
               e['contestId'] == cid && e['index'] == idx,
               orElse: () => {'rating': null} // Fallback if not found
             );
@@ -127,7 +134,7 @@ class MomentumCard extends StatelessWidget {
         }
         avgRating = sumRatings / count;
       }
-      practiceScore += (avgRating >= 0.75*Rating) ? 2 : 0; // Bonus for solving high-rated problems
+      practiceScore += (avgRating >= 0.75*widget.Rating) ? 2 : 0; // Bonus for solving high-rated problems
       
       rawMomentum += practiceScore ; // 40% weight
       print('Practice Score: $practiceScore, Raw Momentum: $rawMomentum');
@@ -184,14 +191,50 @@ class MomentumCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Momentum',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Momentum',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showCriteria = !_showCriteria;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Colors.red.shade700,
+                    ),
+                    label: Text(
+                      'View Criterion',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.red.shade700,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      backgroundColor: Colors.red.shade50,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.red.shade200, width: 1.5),
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
-              // Info box explaining momentum criteria
-              _buildMomentumInfoBox(),
-              const SizedBox(height: 8),
+              // Conditionally show momentum info box
+              if (_showCriteria) ...[
+                _buildMomentumInfoBox(),
+                const SizedBox(height: 8),
+              ],
               _buildMomentumMeter(momentum),
               const SizedBox(height: 8),
               // Momentum remarks below the graph
@@ -397,7 +440,7 @@ class MomentumCard extends StatelessWidget {
     final weekAgo = now.subtract(const Duration(days: 10));
     
     // Contest stats (from last 2 months)
-    final recentContests = ratingHistory.where((contest) {
+    final recentContests = widget.ratingHistory.where((contest) {
       final contestTime = DateTime.fromMillisecondsSinceEpoch(
           contest['ratingUpdateTimeSeconds'] * 1000);
       return contestTime.isAfter(twoMonthsAgo);
@@ -413,7 +456,7 @@ class MomentumCard extends StatelessWidget {
     int acceptedSubmissions = 0;
     Set<String> uniqueProblems = {};
     
-    for (var submission in submissions) {
+    for (var submission in widget.submissions) {
       final submissionTime = DateTime.fromMillisecondsSinceEpoch(
           submission['creationTimeSeconds'] * 1000);
       
@@ -435,7 +478,7 @@ class MomentumCard extends StatelessWidget {
         if (m != null) {
           final cid = int.parse(m.group(1)!);
           final idx = m.group(2)!;
-          final p = problemset['problems'].firstWhere((e) =>
+          final p = widget.problemset['problems'].firstWhere((e) =>
             e['contestId'] == cid && e['index'] == idx,
             orElse: () => {'rating': null} // Fallback if not found
           );

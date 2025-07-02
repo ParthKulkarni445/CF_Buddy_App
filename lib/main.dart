@@ -10,9 +10,12 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('apiCache');
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Initialize Firebase
@@ -95,7 +98,7 @@ class NotificationService {
     }
 
     await _firebaseMessaging.subscribeToTopic('contest-reminders');
-    await _firebaseMessaging.subscribeToTopic('motivation-channel');
+    await _firebaseMessaging.subscribeToTopic('motivation');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print(

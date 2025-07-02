@@ -1,7 +1,7 @@
 name: acex
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -39,6 +39,7 @@ dependencies:
   googleapis: ^14.0.0
   googleapis_auth: ^2.0.0
   flutter_local_notifications: ^19.3.0
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:

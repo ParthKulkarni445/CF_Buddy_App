@@ -46,11 +46,11 @@ class _ContestDetailsPageState extends State<ContestDetailsPage> {
     _fetchData();
   }
 
-  Future<void> _fetchData() async {
-    contestDetails = ApiService().getContestDetails(widget.contestId);
-    userStandings = ApiService().getUserStandings(widget.contestId, _handle);
-    contestRatingChanges = ApiService().getContestRatingChanges(widget.contestId);
-    friends = ApiService().getFriendStandings(_handle, widget.contestId);
+  Future<void> _fetchData({bool force=false}) async {
+    contestDetails = ApiService().getContestDetails(widget.contestId, force: force);
+    userStandings = ApiService().getUserStandings(widget.contestId, _handle , force: force);
+    contestRatingChanges = ApiService().getContestRatingChanges(widget.contestId , force: force);
+    friends = ApiService().getFriendStandings(_handle, widget.contestId, force: force);
   }
 
   void _retryFetchData() {
@@ -61,7 +61,7 @@ class _ContestDetailsPageState extends State<ContestDetailsPage> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
     await Future.wait([contestDetails, userStandings, contestRatingChanges, friends]);
   }

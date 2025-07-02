@@ -57,10 +57,10 @@ class _SubmissionsPageState extends State<SubmissionsPage> {
     }
   }
 
-  void _fetchData() {
-    submissions = ApiService().getSubmissions(_selectedHandle);
-    friends = ApiService().fetchFriends(widget.handle, false);
-    problems = ApiService().getProblemset();
+  void _fetchData({bool force = false}) {
+    submissions = ApiService().getSubmissions(_selectedHandle, force: force);
+    friends = ApiService().fetchFriends(widget.handle, false, force: force);
+    problems = ApiService().getProblemset(force: force);
   }
 
   void _retryFetchData() {
@@ -71,7 +71,7 @@ class _SubmissionsPageState extends State<SubmissionsPage> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
       _currentPage = 1;
     });
     await Future.wait([submissions, problems]);

@@ -164,6 +164,50 @@ class _SettingsPageState extends State<SettingsPage> {
   void signOutUser() {
     authService.signOut(context);
   }
+  Future<void> _deleteAccount() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to delete your account? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.cyan[900],
+            ),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await authService.deleteAccount(context: context);
+      authService.signOut(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Failed to delete account')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   Future<void> launchURL(String url) async {
   final Uri uri = Uri.parse(url);
@@ -296,6 +340,27 @@ class _SettingsPageState extends State<SettingsPage> {
                           const Icon(Icons.logout, color: Colors.white),
                           const SizedBox(width: 8),
                           const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        elevation: 8
+                      ),
+                      onPressed: _deleteAccount,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.delete, color: Colors.white),
+                          const SizedBox(width: 8),
+                          const Text('Delete Account', style: TextStyle(color: Colors.white)),
                         ],
                       ),
                     ),

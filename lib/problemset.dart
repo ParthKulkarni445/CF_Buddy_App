@@ -112,9 +112,9 @@ class _ProblemPageState extends State<ProblemPage> {
     await prefs.setBool('showRatingForUnsolved', _showRatingForUnsolved);
   }
 
-  void _fetchData() {
-    problemsetData = ApiService().getProblemset();
-    submissions = ApiService().getSubmissions(widget.handle);
+  void _fetchData({bool force = false}) {
+    problemsetData = ApiService().getProblemset(force: force);
+    submissions = ApiService().getSubmissions(widget.handle, force: force);
     problemsetData.then((data) {
       setState(() {
         _problems = data['problems'];
@@ -137,7 +137,7 @@ class _ProblemPageState extends State<ProblemPage> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
     await problemsetData;
   }

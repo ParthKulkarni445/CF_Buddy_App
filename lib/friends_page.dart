@@ -70,20 +70,14 @@ class _FriendsPageState extends State<FriendsPage> {
     super.dispose();
   }
 
-  void _fetchData() {
-    friends = ApiService().fetchFriendsInfo(_handle, false);
-    onlineFriends = ApiService().fetchFriendsInfo(_handle, true);
-  }
-
-  void _retryFetchData() {
-    setState(() {
-      _fetchData();
-    });
+  void _fetchData({bool force = false}) {
+    friends = ApiService().fetchFriendsInfo(_handle, false, force: force);
+    onlineFriends = ApiService().fetchFriendsInfo(_handle, true, force: force);
   }
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _fetchData(force: true);
     });
     await Future.wait([friends, onlineFriends]);
   }
