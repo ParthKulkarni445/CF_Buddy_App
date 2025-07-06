@@ -65,7 +65,7 @@ class AuthService {
         },
       );
     } catch (e) {
-      showAlert(context, 'Error', e.toString());
+      showAlert(context, 'Error', "Some error occured, please try again later.");
     } finally {
       if (onSuccess != null) {
         onSuccess();
@@ -115,8 +115,7 @@ class AuthService {
       );
     } catch (e) {
       print(e.toString());
-      showAlert(
-          context, 'Error', "Some error occured, please try again later.");
+      showAlert(context, 'Error', "Some error occured, please try again later.");
     } finally {
       if (onSuccess != null) {
         onSuccess();
